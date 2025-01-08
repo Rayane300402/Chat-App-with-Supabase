@@ -1,19 +1,24 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { authGuard } from './auth.guard';
 
-const routes: Routes = [
+export const  routes: Routes = [
   {
     path: 'chat',
-    loadComponent: () => import('./pages/chat/chat.component').then(m => m.ChatComponent)
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/chat/chat.component').then((com) => com.ChatComponent),
   },
   {
     path: 'login',
-    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+    loadComponent: () =>
+      import('./pages/login/login.component').then((com) => com.LoginComponent),
   },
   {
     path: '',
-    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
-  }
+    loadComponent: () =>
+      import('./pages/login/login.component').then((com) => com.LoginComponent),
+  },
 ];
 
 @NgModule({
