@@ -67,7 +67,7 @@ export class ChatService {
       try {
         const {data, error} = await this.supabase.from('chat').update({
           text: text,
-          editable: true
+          editable: 'true'
         }).eq('id', id);
         if(error){
           throw error;

@@ -1,6 +1,6 @@
 export interface Ichat {
     created_at: string;
-    editable: boolean;
+    editable: string;
     id: string;
     sender: string;
     text: string;
