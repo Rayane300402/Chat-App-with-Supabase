@@ -63,5 +63,21 @@ export class ChatService {
       this.savedChat.set(msg);
     }
 
+    async updateChat(id: string, text: string){
+      try {
+        const {data, error} = await this.supabase.from('chat').update({
+          text: text,
+          editable: true
+        }).eq('id', id);
+        if(error){
+          throw error;
+        }
+        return data;
+      } catch (error) {
+        alert(error);
+        return null;
+      }
+    }
+
 
 }
