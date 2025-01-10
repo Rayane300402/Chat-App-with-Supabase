@@ -176,7 +176,6 @@ export class ChatComponent {
   onFileSelected(event: any) {
     const file: File = event.target.files[0];
     if (file) {
-      // Make sure it’s an image (png, jpeg, jpg) if you want to restrict
       if (!file.type.startsWith('image/')) {
         alert('Please select an image file!');
         return;
@@ -185,5 +184,6 @@ export class ChatComponent {
       this.fileName = file.name;
     }
   }
+  
 
 }
