@@ -24,6 +24,10 @@ export class ChatComponent {
 
   chatForm!: FormGroup;
 
+  // For image sending
+  selectedFile: File | null = null;
+  fileName: string = ''; // just for displaying the file name in UI
+
   // For editing existing messages:
   editingChatId = signal<string | null>(null);
   editingChatForm = signal<FormGroup | null>(null);
@@ -49,22 +53,66 @@ export class ChatComponent {
   }
 
   onSubmit() {
-    const formValue = this.chatForm.value.chat_message;
-    console.log(formValue);
+    const textValue = this.chatForm.value.chat_message;
 
-    this.chat_service.chatMessage(formValue).then((res) => {
-      console.log("Message sent: ", res);
-      this.chatForm.reset();
-      this.onListChat();
-    }).catch((error) => {
-      if (error instanceof Error) {
+    // If there's a file selected, we handle image upload first
+    if (this.selectedFile) {
+      this.uploadAndSendMessage(textValue);
+    } else {
+      // Just send the text message
+      this.chat_service.chatMessage(textValue).then(() => {
+        this.chatForm.reset();
+        this.onListChat();
+      }).catch((error) => {
         alert(error.message);
-      } else {
-        alert('An unknown error occurred');
-      }
-    });
-
+      });
+    }
   }
+
+
+  private async uploadAndSendMessage(textValue: string) {
+    if (!this.selectedFile) return;
+    try {
+      // Upload image
+      const publicUrl = await this.chat_service.uploadImage(this.selectedFile);
+      if (!publicUrl) {
+        alert('Image upload failed!');
+        return;
+      }
+
+      // Send chat message with the image URL
+      await this.chat_service.chatMessage(textValue, publicUrl);
+
+      // Reset the form
+      this.chatForm.reset();
+      this.selectedFile = null;
+      this.fileName = '';
+
+      // Refresh chat list
+      this.onListChat();
+    } catch (error: any) {
+      alert(error.message);
+    }
+  }
+
+
+  // onSubmit() {
+  //   const formValue = this.chatForm.value.chat_message;
+  //   console.log(formValue);
+
+  //   this.chat_service.chatMessage(formValue).then((res) => {
+  //     console.log("Message sent: ", res);
+  //     this.chatForm.reset();
+  //     this.onListChat();
+  //   }).catch((error) => {
+  //     if (error instanceof Error) {
+  //       alert(error.message);
+  //     } else {
+  //       alert('An unknown error occurred');
+  //     }
+  //   });
+
+  // }
 
   onListChat() {
     this.chat_service.listChat().then((res) => {
@@ -99,19 +147,19 @@ export class ChatComponent {
     this.editingChatForm.set(null);
   }
 
-  async saveEditedMessage(msg:Ichat){
+  async saveEditedMessage(msg: Ichat) {
     const editedText = this.editingChatForm()?.value.edited_message;
-    if(!editedText){
+    if (!editedText) {
       alert("Message cannot be empty");
       return;
     }
 
-    try{
+    try {
 
       await this.chat_service.updateChat(msg.id, editedText);
       this.onListChat();
 
-    } catch(error){
+    } catch (error) {
       if (error instanceof Error) {
         alert(error.message);
       } else {
@@ -122,6 +170,20 @@ export class ChatComponent {
     this.editingChatId.set(null);
     this.editingChatForm.set(null);
 
+  }
+
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      // Make sure it’s an image (png, jpeg, jpg) if you want to restrict
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file!');
+        return;
+      }
+      this.selectedFile = file;
+      this.fileName = file.name;
+    }
   }
 
 }
